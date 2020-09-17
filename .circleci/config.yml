@@ -1,0 +1,28 @@
+version: 2.1
+orbs:
+    docker: circleci/docker@1.4.0
+jobs:
+  build-devcontainer:
+    executor: docker/docker
+    environment:
+      IMAGE_NAME: alexstojda/devcontainer
+      DOCKER_REGISTRY: ghcr.io
+    steps:
+        - setup_remote_docker
+        - checkout
+        - docker/check:
+            registry: $DOCKER_REGISTRY
+        - docker/build:
+            docker-context: ./devcontainer
+            path: ./devcontainer
+            image: $IMAGE_NAME
+            tag: latest
+            registry: $DOCKER_REGISTRY
+        - docker/push:
+            image: $IMAGE_NAME
+            registry: $DOCKER_REGISTRY
+            tag: latest
+workflows:
+  build:
+    jobs:
+      - build-devcontainer
