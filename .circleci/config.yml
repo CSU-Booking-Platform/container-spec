@@ -5,24 +5,68 @@ jobs:
   build-devcontainer:
     executor: docker/docker
     environment:
-      IMAGE_NAME: alexstojda/devcontainer
+      IMAGE_NAME: csu-booking-platform/devcontainer
       DOCKER_REGISTRY: ghcr.io
     steps:
         - setup_remote_docker
         - checkout
-        - docker/check:
-            registry: $DOCKER_REGISTRY
-        - docker/build:
-            docker-context: ./devcontainer
-            path: ./devcontainer
-            image: $IMAGE_NAME
-            tag: latest
-            registry: $DOCKER_REGISTRY
-        - docker/push:
-            image: $IMAGE_NAME
-            registry: $DOCKER_REGISTRY
-            tag: latest
+        - run: 
+            name: Build docker image
+            command: |
+              cd devcontainer
+              docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}-${CIRCLE_SHA1} .
+  build-and-release-devcontainer:
+    executor: docker/docker
+    environment:
+      IMAGE_NAME: csu-booking-platform/devcontainer
+      DOCKER_REGISTRY: ghcr.io
+      TAG_FORMAT: "{Major}.{Minor}.{Patch}"
+      GITHUB_OWNER: csu-booking-platform
+      GITHUB_REPO: container-spec
+    steps:
+        - setup_remote_docker
+        - checkout
+        - run: 
+            name: Get next version
+            command: |
+              curl -L https://github.com/idc101/git-mkver/releases/download/v1.1.1/git-mkver-linux-amd64-1.1.1.tar.gz | tar xvz
+              sudo mv git-mkver /usr/local/bin              
+              git mkver next -f $TAG_FORMAT >> GIT_TAG
+              echo "export TAG=$(cat GIT_TAG)" >> $BASH_ENV
+        - run: 
+            name: Build docker image
+            command: |
+              cd devcontainer
+              docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG} .
+        - run: 
+            name: Publish docker image
+            command: |
+              docker login $DOCKER_REGISTRY -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+              docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
+        - run: 
+            name: Create Release
+            command: |
+              wget https://github.com/github-release/github-release/releases/download/v0.8.1/linux-amd64-github-release.bz2
+              bzip2 -d linux-amd64-github-release.bz2
+              chmod +x linux-amd64-github-release 
+              mv linux-amd64-github-release ghr
+              ./ghr release \
+                --tag $TAG \
+                --security-token $DOCKER_PASSWORD \
+                --user $GITHUB_OWNER \
+                --repo $GITHUB_REPO 
+
+
 workflows:
   build:
     jobs:
-      - build-devcontainer
+      - build-devcontainer:
+          filters:  # using regex filters requires the entire branch to match
+            branches:
+              ignore:  # only branches matching the below regex filters will run
+                - main
+      - build-and-release-devcontainer:
+          filters:  # using regex filters requires the entire branch to match
+            branches:
+              only:  # only branches matching the below regex filters will run
+                - main
