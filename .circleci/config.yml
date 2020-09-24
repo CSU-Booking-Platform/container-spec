@@ -10,7 +10,7 @@ jobs:
     steps:
         - setup_remote_docker
         - checkout
-        - run: 
+        - run:
             name: Build docker image
             command: |
               cd devcontainer
@@ -26,35 +26,39 @@ jobs:
     steps:
         - setup_remote_docker
         - checkout
-        - run: 
+        - run:
             name: Get next version
             command: |
               curl -L https://github.com/idc101/git-mkver/releases/download/v1.1.1/git-mkver-linux-amd64-1.1.1.tar.gz | tar xvz
-              sudo mv git-mkver /usr/local/bin              
+              sudo mv git-mkver /usr/local/bin
               git mkver next -f $TAG_FORMAT >> GIT_TAG
-              echo "export TAG=$(cat GIT_TAG)" >> $BASH_ENV
-        - run: 
+              if [ $(git tag -l "$(cat GIT_TAG)") ]; then
+                circleci-agent step halt
+              else
+                echo "export TAG=$(cat GIT_TAG)" >> $BASH_ENV
+              fi
+        - run:
             name: Build docker image
             command: |
               cd devcontainer
               docker build -t ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG} .
-        - run: 
+        - run:
             name: Publish docker image
             command: |
               docker login $DOCKER_REGISTRY -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
               docker push ${DOCKER_REGISTRY}/${IMAGE_NAME}:${TAG}
-        - run: 
+        - run:
             name: Create Release
             command: |
               wget https://github.com/github-release/github-release/releases/download/v0.8.1/linux-amd64-github-release.bz2
               bzip2 -d linux-amd64-github-release.bz2
-              chmod +x linux-amd64-github-release 
+              chmod +x linux-amd64-github-release
               mv linux-amd64-github-release ghr
               ./ghr release \
                 --tag $TAG \
                 --security-token $DOCKER_PASSWORD \
                 --user $GITHUB_OWNER \
-                --repo $GITHUB_REPO 
+                --repo $GITHUB_REPO
 
 
 workflows:
