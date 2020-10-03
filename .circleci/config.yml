@@ -20,22 +20,24 @@ jobs:
     environment:
       IMAGE_NAME: csu-booking-platform/devcontainer
       DOCKER_REGISTRY: ghcr.io
-      TAG_FORMAT: "{Major}.{Minor}.{Patch}"
       GITHUB_OWNER: csu-booking-platform
       GITHUB_REPO: container-spec
     steps:
         - setup_remote_docker
+        - add_ssh_keys:
+            fingerprints:
+              -  "74:6a:ad:46:d3:93:e1:39:c2:56:6b:0c:61:06:a4:24"
         - checkout
         - run:
             name: Get next version
             command: |
               curl -L https://github.com/idc101/git-mkver/releases/download/v1.1.1/git-mkver-linux-amd64-1.1.1.tar.gz | tar xvz
               sudo mv git-mkver /usr/local/bin
-              git mkver next -f $TAG_FORMAT >> GIT_TAG
-              if [ $(git tag -l "$(cat GIT_TAG)") ]; then
+              git mkver next
+              if [ $(git tag -l "$(git mkver next)") ]; then
                 circleci-agent step halt
               else
-                echo "export TAG=$(cat GIT_TAG)" >> $BASH_ENV
+                echo "export TAG=$(git mkver next)" >> $BASH_ENV
               fi
         - run:
             name: Build docker image
@@ -54,6 +56,8 @@ jobs:
               bzip2 -d linux-amd64-github-release.bz2
               chmod +x linux-amd64-github-release
               mv linux-amd64-github-release ghr
+              git mkver -c ./mkver.conf tag
+              git push --tags
               ./ghr release \
                 --tag $TAG \
                 --security-token $DOCKER_PASSWORD \

@@ -45,3 +45,5 @@ RUN if [ "$USER_GID" != "1000" ] || [ "$USER_UID" != "1000" ]; then \
         && chmod -R $USER_UID:$USER_GID /home/vscode \
         && chmod -R $USER_UID:root ${NVM_DIR}}; \
     fi
+
+CMD service nginx start && php-fpm
