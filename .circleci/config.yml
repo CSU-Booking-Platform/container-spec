@@ -56,7 +56,7 @@ jobs:
               bzip2 -d linux-amd64-github-release.bz2
               chmod +x linux-amd64-github-release
               mv linux-amd64-github-release ghr
-              git mkver -c ./mkver.conf tag
+              git mkver tag
               git push --tags
               ./ghr release \
                 --tag $TAG \
