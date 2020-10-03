@@ -20,7 +20,6 @@ jobs:
     environment:
       IMAGE_NAME: csu-booking-platform/devcontainer
       DOCKER_REGISTRY: ghcr.io
-      TAG_FORMAT: "{Major}.{Minor}.{Patch}"
       GITHUB_OWNER: csu-booking-platform
       GITHUB_REPO: container-spec
     steps:
@@ -31,7 +30,8 @@ jobs:
             command: |
               curl -L https://github.com/idc101/git-mkver/releases/download/v1.1.1/git-mkver-linux-amd64-1.1.1.tar.gz | tar xvz
               sudo mv git-mkver /usr/local/bin
-              git mkver next -f $TAG_FORMAT >> GIT_TAG
+              git mkver -c ./mkver.conf next >> GIT_TAG
+              cat GIT_TAG
               if [ $(git tag -l "$(cat GIT_TAG)") ]; then
                 circleci-agent step halt
               else
@@ -54,6 +54,8 @@ jobs:
               bzip2 -d linux-amd64-github-release.bz2
               chmod +x linux-amd64-github-release
               mv linux-amd64-github-release ghr
+              git mkver -c ./mkver.conf tag
+              git push --tags
               ./ghr release \
                 --tag $TAG \
                 --security-token $DOCKER_PASSWORD \
