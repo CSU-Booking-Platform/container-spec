@@ -27,7 +27,7 @@ RUN curl -sSL https://getcomposer.org/installer | php \
 # Install other extensions 
 ADD https://raw.githubusercontent.com/mlocati/docker-php-extension-installer/master/install-php-extensions /usr/local/bin/
 RUN chmod uga+x /usr/local/bin/install-php-extensions && sync && \
-    install-php-extensions pdo_pgsql pgsql
+    install-php-extensions pdo_pgsql pgsql zip
 
 # [Option] Install Node.js
 ARG NODE_VERSION="v12.8"
