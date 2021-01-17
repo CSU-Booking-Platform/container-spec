@@ -30,7 +30,7 @@ RUN chmod uga+x /usr/local/bin/install-php-extensions && sync && \
     install-php-extensions pdo_pgsql pgsql zip gd
 
 # [Option] Install Node.js
-ARG NODE_VERSION="v12.20"
+ARG NODE_VERSION="v14.15"
 ENV NVM_DIR=/usr/local/share/nvm
 ENV NVM_SYMLINK_CURRENT=true \
     PATH=${NVM_DIR}/current/bin:${PATH}
