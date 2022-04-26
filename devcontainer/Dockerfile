@@ -1,5 +1,5 @@
 FROM php:8.0-fpm
-
+#random comment
 # Install needed packages and setup non-root user. Use a separate RUN statement to add your own dependencies.
 ARG USERNAME=vscode
 ARG USER_UID=1000
