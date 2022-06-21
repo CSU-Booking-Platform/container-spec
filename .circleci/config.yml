@@ -1,6 +1,6 @@
 version: 2.1
 orbs:
-    docker: circleci/docker@1.4.0
+    docker: circleci/docker@2.1.2
 jobs:
   build-devcontainer:
     executor: docker/docker
