@@ -9,7 +9,7 @@ jobs:
       DOCKER_REGISTRY: ghcr.io
     steps:
         - setup_remote_docker:
-            version: 20.10.6
+            version: 20.10.11
         - checkout
         - run:
             name: Build docker image
@@ -24,7 +24,8 @@ jobs:
       GITHUB_OWNER: csu-booking-platform
       GITHUB_REPO: container-spec
     steps:
-        - setup_remote_docker
+        - setup_remote_docker:
+            version: 20.10.11
         - add_ssh_keys:
             fingerprints:
               -  "74:6a:ad:46:d3:93:e1:39:c2:56:6b:0c:61:06:a4:24"
