@@ -12,10 +12,6 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 
 COPY default /etc/nginx/sites-available/default
 
-# Install xdebug
-RUN pecl install xdebug \
-    && docker-php-ext-enable xdebug-3.1.0
-
 # Install composer
 RUN curl -sSL https://getcomposer.org/installer | php \
     && chmod +x composer.phar \
